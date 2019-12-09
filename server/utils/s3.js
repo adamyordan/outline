@@ -78,6 +78,7 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
 };
 
 export const uploadToS3FromUrl = async (url: string, key: string) => {
+  return;
   const s3 = new AWS.S3({
     s3ForcePathStyle: true,
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,

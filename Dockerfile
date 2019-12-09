@@ -10,7 +10,8 @@ COPY . $APP_PATH
 
 RUN yarn install --pure-lockfile
 RUN cp -r /opt/outline/node_modules /opt/node_modules
+RUN yarn build:webpack
 
-CMD yarn build && yarn start
+CMD yarn start
 
 EXPOSE 3000
