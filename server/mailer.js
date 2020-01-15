@@ -4,10 +4,11 @@ import debug from 'debug';
 import bugsnag from 'bugsnag';
 import nodemailer from 'nodemailer';
 import Oy from 'oy-vey';
-import Queue from 'bull';
+import { createQueue } from './utils/queue';
 import { baseStyles } from './emails/components/EmailLayout';
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
 import { ExportEmail, exportEmailText } from './emails/ExportEmail';
+import { SigninEmail, signinEmailText } from './emails/SigninEmail';
 import {
   type Props as InviteEmailT,
   InviteEmail,
@@ -123,6 +124,16 @@ export class Mailer {
     });
   };
 
+  signin = async (opts: { to: string, token: string, teamUrl: string }) => {
+    this.sendMail({
+      to: opts.to,
+      title: 'Magic signin link',
+      previewText: 'Here’s your link to signin to Outline.',
+      html: <SigninEmail {...opts} />,
+      text: signinEmailText(opts),
+    });
+  };
+
   documentNotification = async (
     opts: { to: string } & DocumentNotificationEmailT
   ) => {
@@ -171,7 +182,7 @@ export class Mailer {
 const mailer = new Mailer();
 export default mailer;
 
-export const mailerQueue = new Queue('email', process.env.REDIS_URL);
+export const mailerQueue = createQueue('email');
 
 mailerQueue.process(async (job: EmailJob) => {
   // $FlowIssue flow doesn't like dynamic values

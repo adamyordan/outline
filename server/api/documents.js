@@ -30,10 +30,9 @@ const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  const { sort = 'updatedAt' } = ctx.body;
+  const { sort = 'updatedAt', backlinkDocumentId, parentDocumentId } = ctx.body;
   const collectionId = ctx.body.collection;
   const createdById = ctx.body.user;
-  const backlinkDocumentId = ctx.body.backlinkDocumentId;
   let direction = ctx.body.direction;
   if (direction !== 'ASC') direction = 'DESC';
 
@@ -64,7 +63,14 @@ router.post('documents.list', auth(), pagination(), async ctx => {
     where = { ...where, collectionId: collectionIds };
   }
 
+  if (parentDocumentId) {
+    ctx.assertUuid(parentDocumentId, 'parentDocumentId must be a UUID');
+    where = { ...where, parentDocumentId };
+  }
+
   if (backlinkDocumentId) {
+    ctx.assertUuid(backlinkDocumentId, 'backlinkDocumentId must be a UUID');
+
     const backlinks = await Backlink.findAll({
       attributes: ['reverseDocumentId'],
       where: {
@@ -515,7 +521,14 @@ router.post('documents.restore', auth(), async ctx => {
 });
 
 router.post('documents.search', auth(), pagination(), async ctx => {
-  const { query, includeArchived, collectionId, userId, dateFilter } = ctx.body;
+  const {
+    query,
+    includeArchived,
+    includeDrafts,
+    collectionId,
+    userId,
+    dateFilter,
+  } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
   const user = ctx.state.user;
   ctx.assertPresent(query, 'query is required');
@@ -545,6 +558,7 @@ router.post('documents.search', auth(), pagination(), async ctx => {
 
   const results = await Document.searchForUser(user, query, {
     includeArchived: includeArchived === 'true',
+    includeDrafts: includeDrafts === 'true',
     collaboratorIds,
     collectionId,
     dateFilter,

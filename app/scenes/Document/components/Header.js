@@ -143,13 +143,16 @@ class Header extends React.Component<Props> {
           </Title>
         )}
         <Wrapper align="center" justify="flex-end">
-          {!isDraft && !isEditing && <Collaborators document={document} />}
           {isSaving &&
             !isPublishing && (
               <Action>
                 <Status>Saving…</Status>
               </Action>
             )}
+          <Collaborators
+            document={document}
+            currentUserId={auth.user ? auth.user.id : undefined}
+          />
           {!isDraft &&
             !isEditing &&
             canShareDocuments && (
@@ -286,7 +289,7 @@ const Actions = styled(Flex)`
   left: 0;
   z-index: 1;
   background: ${props => transparentize(0.1, props.theme.background)};
-  border-bottom: 1px solid
+  box-shadow: 0 1px 0
     ${props =>
       props.isCompact
         ? darken(0.05, props.theme.sidebarBackground)
